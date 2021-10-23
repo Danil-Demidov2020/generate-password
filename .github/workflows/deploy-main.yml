@@ -4,8 +4,8 @@ on:
   push:
     tags:
       - 'v*'
-jobs:
 
+jobs:
 
   createrelease:
     name: Create Release
@@ -38,8 +38,8 @@ jobs:
         include:
           - os: windows-latest
             TARGET: windows
-            CMD_BUILD: pyinstaller -F -n generate-password *main.py
-            OUT_FILE_NAME: generate-password*.exe
+            CMD_BUILD: pyinstaller -F -n generate-password main.py
+            OUT_FILE_NAME: generate-password.exe
             ASSET_MIME: application/vnd.microsoft.portable-executable
 
     steps:
