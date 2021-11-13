@@ -1,65 +1,88 @@
-import random
 import datetime
 import os
+from Password import Password
+from rich import print, box
+from rich.layout import Layout
+from rich.panel import Panel
+from rich.console import Console, Group
+from rich.text import Text
+from rich.table import Table
 
-# Набор доступных символов.
-ARRAY_SYMBOLS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-                 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                 'u', 'v', 'w', 'x', 'y', 'z',
-                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-                 'U', 'V', 'W', 'X', 'Y', 'Z',
-                 '!', '@', '#', '$', '&', '?', '-', '+', '=', '~',
-                 '_', '^', '*', '.']
 
-# Получаем количество символов в пароле.
-COUNT_SYMBOLS = 4
-input_count = input("Введите количество символов в пароле: ")
-if input_count.isdigit():
-    count_symbols = int(input_count)
+def file_name():
+    text_datetime = f'{datetime.datetime.now()}'
+    symbol_replace = ['.', ':', '-', ' ']
+    fn = ''
+    for s in text_datetime:
+        is_write = True
+        for sr in symbol_replace:
+            if s == sr:
+                fn += '_'
+                is_write = False
+        if is_write:
+            fn += s
+    return fn
+
+
+password = Password()
+
+count_symbols = input("Введите количество символов в пароле: ")
+pin_code = input("Введите PIN CODE для шифрования пароля (4 цифры): ")
+
+if not pin_code.isdigit():
+    pin_code = None
+
+if count_symbols.isdigit():
+    password.generation(int(count_symbols), pin_code)
 else:
-    count_symbols = COUNT_SYMBOLS
+    password.generation(None, None)
 
-# Узнаем количество всех возможных комбинаций.
-count_variant = len(ARRAY_SYMBOLS) ** count_symbols
+# print(f'Приложение версии 0.0.1')
+# print(f'Количество доступных символов: {len(password.get_array_symbols())}')
+# print(f'Доступные символы: {password.get_array_symbols()}')
+# print(f'Количество возможных комбинаций: {password.count_variant}')
+#
+# print(f'Сгенерированный пароль: {password.password}')
 
+console = Console()
+layout = Layout(name="info")
 
-# Получить случайный символ.
-def random_symbols():
-    return ARRAY_SYMBOLS[
-        random.randint(0, len(ARRAY_SYMBOLS) - 1)
-    ]
+table_info = Table.grid(padding=1)
 
+print_count_array_symbols = Text.from_markup(f'{len(password.get_array_symbols())}', style="bold yellow")
+table_info.add_row(f'Количество доступных символов:', print_count_array_symbols)
 
-print(f'Версия программы: v0.0.1')
-print(f'Количество доступных символов: {len(ARRAY_SYMBOLS)}')
-print(f'Доступные символы: {ARRAY_SYMBOLS}')
-print(f'Количество возможных комбинаций: {count_variant}')
+print_array_symbols = Text.from_markup(f'{password.get_array_symbols()}', style="bold yellow")
+table_info.add_row(f'Доступные символы:', print_array_symbols)
 
-# Генерируем уникальный пароль.
-password = ''
-for i in range(0, count_symbols):
-    password = password + f'{random_symbols()}'
+print_count_variant = Text.from_markup(f'{password.count_variant}', style="italic #af00ff")
+table_info.add_row(f'Количество возможных комбинаций:', print_count_variant)
 
-print(f'Сгенерированный пароль: {password}')
+print_password = Text.from_markup(f'{password.password}', style="bold yellow")
+table_info.add_row(f'Сгенерированный пароль:', print_password)
 
-text_datetime = f'{datetime.datetime.now()}'
-symbols_replace = [ '-', '', ':', '.']
-file_name = ''
-for s in text_datetime:
-    is_write = True
-    for sr in symbols_replace:
-        if s == sr:
-            file_name += '_'
-            is_write = False
-    if is_write:
-        file_name += s
+print_pin_code = Text.from_markup(f'{password.pin_code}', style="bold yellow")
+table_info.add_row(f'Пин код:', print_pin_code)
 
-if not os.path.exists('passwords'):
-    os.mkdir('passwords')
+print_check_summa = Text.from_markup(f'{password.check_summa}', style="bold yellow")
+table_info.add_row(f'Ключ пароля:')
 
+layout.update(
+    Panel(
+        Group(table_info, print_check_summa),
+        box=box.ROUNDED,
+        title="Информация",
+        subtitle="Приложение версии 0.0.7",
+    )
+)
+
+console.print(layout)
+
+if not os.path.exists('password'):
+    os.mkdir('password')
 
 # Запись пароля в файл.
-with open(f'passwords/{file_name}_password.txt', 'a') as password_string:
-    password_string.write('{}\n'.format(f'{password}'))
+with open(f'password/{file_name()}.txt', 'a') as password_string:
+    password_string.write('{}\n'.format(f'{password.check_summa}'))
 
 input()
